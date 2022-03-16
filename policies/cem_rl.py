@@ -6,8 +6,6 @@ from salina import Agent
 
 import copy
 
-# from run_launcher.cem_rl.debug_pytorch import load_state_dict
-
 class CemRl:
 
     def __init__(self,cfg) -> None:
@@ -43,7 +41,6 @@ class CemRl:
         weight = copy.deepcopy(self.pop_weights[i]) # TODO: check if necessary
         vector_to_parameters(weight,self.param_transfert_agent.parameters())
         actor.load_state_dict(self.param_transfert_agent.state_dict())
-        
         return actor
 
     def update_acquisition_actor(self,actor,i) -> None:
@@ -53,7 +50,7 @@ class CemRl:
 
     def train(self,acq_workspaces,n_total_actor_steps,logger) -> None:
 
-        # Fitness of population
+        # Ccompute fitness of population
         n_actor_all_steps = 0
         fitness = torch.zeros(len(acq_workspaces))
         for i,workspace in enumerate(acq_workspaces):
@@ -83,8 +80,6 @@ class CemRl:
                 self.rl_learner.train_critic_and_actor(n_step_per_actor,n_total_actor_steps,logger)
                 n_total_actor_steps+=n_step_per_actor
 
-                # TODO: check if i really need to use transfert agent here ? 
-                actor_state_dict = self.rl_learner.get_state_dict()
-                self.param_transfert_agent.load_state_dict(actor_state_dict)
-                vector_param = torch.nn.utils.parameters_to_vector(self.param_transfert_agent.parameters())
-                self.pop_weights[i] = copy.deepcopy(vector_param.detach()) # TODO: check if copy necessary
+                # send back the updated weight into the population
+                vector_param = torch.nn.utils.parameters_to_vector(self.rl_learner.get_parameters())
+                self.pop_weights[i] = vector_param.clone().detach() # TODO: check if copy necessary

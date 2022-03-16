@@ -14,9 +14,6 @@ from policies.learner import learner
 from utils import get_env_dimensions,soft_param_update
 from agents.utils import Salina_Actor_Decorator,Salina_Qcritic_Decorator
 
-
-# TODO : move actor / critic agents to NN agents file. 
-
 class ddpg(learner):
 
     def __init__(self,cfg) -> None:
@@ -62,8 +59,8 @@ class ddpg(learner):
         # reset action optimizer: 
         self.optimizer_actor_agent = torch.optim.Adam(self.action_agent.parameters(),lr=self.cfg.algorithm.optimizer.lr)
 
-    def get_state_dict(self):
-        return self.action_agent.state_dict()
+    def get_parameters(self):
+        return self.action_agent.parameters()
     
     def get_acquisition_actor(self):
         '''
