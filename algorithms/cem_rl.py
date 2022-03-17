@@ -65,17 +65,15 @@ class CemRl:
     def get_acquisition_actor(self,i) -> Agent:
         actor = self.rl_learner.get_acquisition_actor()
         weight = copy.deepcopy(self.pop_weights[i]) # TODO: check if necessary
-        # vector_to_parameters(weight,self.param_transfert_agent.parameters())
-        # actor.load_state_dict(self.param_transfert_agent.state_dict())
-        vector_to_parameters(weight,actor.parameters())
+        vector_to_parameters(weight,self.param_transfert_agent.parameters())
+        actor.load_state_dict(self.param_transfert_agent.state_dict())
         return actor
 
     def update_acquisition_actor(self,actor,i) -> None:
         weight = copy.deepcopy(self.pop_weights[i]) # TODO: check if necessary
-        # weight = self.pop_weights[i] # TODO: check if necessary
-        # vector_to_parameters(weight,self.param_transfert_agent.parameters())        
-        # actor.load_state_dict(self.param_transfert_agent.state_dict())
-        vector_to_parameters(weight,actor.parameters())
+        weight = self.pop_weights[i] # TODO: check if necessary
+        vector_to_parameters(weight,self.param_transfert_agent.parameters())        
+        actor.load_state_dict(self.param_transfert_agent.state_dict())
 
     def train(self,acq_workspaces,n_total_actor_steps,logger) -> None:
 
@@ -100,16 +98,23 @@ class CemRl:
             if self.rl_learner.replay_buffer.size() < self.initial_buffer_size: # shouldn't access directly to replay buffer 
                 return
             selected_actors = random.sample(range(0,self.pop_size),self.n_rl_agent) # take a half of the population at random
-            n_step_per_actor = n_actor_all_steps//len(selected_actors)
-            for i in selected_actors:
-                logger.debug(f"agent {i}")
-                weight = copy.deepcopy(self.pop_weights[i]) # TODO: check if copy necessary
+            # n_step_per_actor = n_actor_all_steps//len(selected_actors)
+            for i in range(self.n_rl_agent):
+                logger.debug(f"agent {selected_actors[i]}")
+                agent_id = selected_actors[i]
+                weight = copy.deepcopy(self.pop_weights[agent_id]) # TODO: check if copy necessary
                 self.rl_learner.set_actor_params(weight)
 
-                #TODO : Wrong number of steps compared to Alois Implementation. Need to be corrected. 
-                self.rl_learner.train_critic_and_actor(n_step_per_actor,n_total_actor_steps,logger)
-                n_total_actor_steps+=n_step_per_actor
+                for _ in range(n_actor_all_steps // len(selected_actors)):
+                    n_grad =  n_total_actor_steps # TODO: change logging method. 
+                    train_workspace =  self.rl_learner.replay_buffer.get(self.rl_learner.cfg.algorithm.batch_size)
+                    self.rl_learner.train_critic(train_workspace,n_grad,logger)
+
+                for _ in range(n_actor_all_steps):
+                    n_grad =  n_total_actor_steps
+                    train_workspace =  self.rl_learner.replay_buffer.get(self.rl_learner.cfg.algorithm.batch_size)
+                    self.rl_learner.train_actor(train_workspace,n_grad,logger)
 
                 # send back the updated weight into the population
                 vector_param = torch.nn.utils.parameters_to_vector(self.rl_learner.get_parameters())
-                self.pop_weights[i] = vector_param.clone().detach() # TODO: check if copy necessary
+                self.pop_weights[agent_id] = vector_param.clone().detach() # TODO: check if copy necessary

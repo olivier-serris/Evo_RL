@@ -33,7 +33,7 @@ class ddpg(learner):
         self.q_agent = get_class(cfg.algorithm.q_agent)(**nn_args)
         if not isinstance(self.q_agent,Agent):
             self.q_agent = Salina_Qcritic_Decorator(self.q_agent)
-            # create target agents :
+        # create target agents :
         self.target_q_agent = copy.deepcopy(self.q_agent)
         self.target_action_agent = copy.deepcopy(self.action_agent)
 
@@ -69,13 +69,13 @@ class ddpg(learner):
         self.action_agent.set_name("action_agent")
         acquisition_action_actor = copy.deepcopy(self.action_agent)
         return acquisition_action_actor
+
     def get_acquisition_args(self):
         return {'epsilon':self.cfg.algorithm.action_noise}
 
     def updateAcquisitionAgent(self,acquisitionAgent):
         for a in acquisitionAgent.get_by_name("action_agent"):
             a.load_state_dict(self.action_agent.state_dict())
-
 
     def workspace_to_replay_buffer(self,acq_worspace): # might will find better way to handle multi-workspace. 
         ''' Add to the replay buffer an acquisition workspace
@@ -86,7 +86,6 @@ class ddpg(learner):
         else: 
             self.replay_buffer.put(acq_worspace,time_size=self.cfg.algorithm.time_size)
         
-
     def train(self,acq_workspace,n_actor_steps,n_total_actor_steps,logger):
 
         self.workspace_to_replay_buffer(acq_workspace)
@@ -96,14 +95,12 @@ class ddpg(learner):
                 return
         self.train_critic_and_actor(n_actor_steps,n_total_actor_steps,logger)
 
-
     def train_critic_and_actor(self,n_actor_steps,n_total_actor_steps,logger):
         for i in range(n_actor_steps):
             grad_step_id = n_total_actor_steps-n_actor_steps+i
             train_workspace =  self.replay_buffer.get(self.cfg.algorithm.batch_size)
             self.train_critic(train_workspace,grad_step_id,logger)
             self.train_actor(train_workspace,grad_step_id,logger)
-
 
     def train_critic(self,train_workspace,n_interactions,logger):
         done, reward = train_workspace["env/done", "env/reward"]

@@ -39,13 +39,13 @@ def synchronized_train_multi(cfg):
     pop_size = cfg.algorithm.es_algorithm.pop_size
 
     acquisition_agents = []
-    acquisition_actor = []
+    acquisition_actors = []
     for i in range(n_processes): 
         env_agent = env_agent = AutoResetGymAgent(make_gym_env,{'max_episode_steps':cfg.env.max_episode_steps,
                                             'env_name':cfg.env.env_name},
                                             n_envs=cfg.algorithm.n_envs)
         action_agent = cem_rl.get_acquisition_actor(i)
-        acquisition_actor.append(action_agent)
+        acquisition_actors.append(action_agent)
         temporal_agent=TemporalAgent(Agents(env_agent, action_agent))
         temporal_agent.seed(cfg.algorithm.env_seed)
         agent=AsynchronousAgent(temporal_agent)
@@ -54,12 +54,12 @@ def synchronized_train_multi(cfg):
     n_interactions = 0
     for _ in range(cfg.algorithm.max_epochs):
         acquisition_workspaces = []
-        nb_agent_finished=0
+        nb_agent_finished = 0
         while(nb_agent_finished < pop_size):
-            n_to_launch=min(pop_size-nb_agent_finished, n_processes)
+            n_to_launch = min(pop_size-nb_agent_finished, n_processes)
             for idx_agent in range(n_to_launch):        
-                idx_weight=idx_agent+nb_agent_finished
-                cem_rl.update_acquisition_actor(acquisition_actor[idx_agent],idx_weight)
+                idx_weight = idx_agent + nb_agent_finished
+                cem_rl.update_acquisition_actor(acquisition_actors[idx_agent],idx_weight)
                 
                 # TODO: add noise args to agents interaction with env ? Alois does not. 
                 acquisition_agents[idx_agent](t=0,stop_variable="env/done")
@@ -67,12 +67,11 @@ def synchronized_train_multi(cfg):
             #Wait for agents execution
             running=True
             while running:
-                are_running=[a.is_running() for a in acquisition_agents[:n_to_launch]]
-                running=any(are_running)
+                are_running = [a.is_running() for a in acquisition_agents[:n_to_launch]]
+                running = any(are_running)
             nb_agent_finished += n_to_launch
-            acquisition_workspaces+=[a.get_workspace() for a in acquisition_agents[:n_to_launch]]
+            acquisition_workspaces += [a.get_workspace() for a in acquisition_agents[:n_to_launch]]
     
-        
         ## Logging rewards:
         for acquisition_worspace in acquisition_workspaces:
             n_interactions += (
@@ -87,12 +86,11 @@ def synchronized_train_multi(cfg):
             agents_creward[i] = creward.mean()
 
         logger.add_scalar(f"monitor/n_interactions", n_interactions, n_interactions)
-        a = agents_creward.mean() 
-
         logger.add_scalar(f"monitor/reward", agents_creward.mean().item(), n_interactions)
         logger.add_scalar(f"monitor/reward_best", agents_creward.max().item(), n_interactions)
             
         cem_rl.train(acquisition_workspaces,n_interactions,logger)
+
     for a in acquisition_agents:
         a.close()
 
