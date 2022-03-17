@@ -30,25 +30,27 @@ def synchronized_train(cfg):
     acquisition_agent = TemporalAgent(acquisition_agent)
 
     n_processes=cfg.algorithm.num_processes
-
+    acquisition_args = learner.get_acquisition_args()
     acquisition_agent,acquisition_worspace = NRemoteAgent.create(acquisition_agent,
                                             n_processes=n_processes,
-                                            t=0,n_steps=cfg.algorithm.n_timesteps)
+                                            t=0,n_steps=cfg.algorithm.n_timesteps,
+                                            **acquisition_args)
     acquisition_agent.seed(cfg.algorithm.env_seed)
     n_total_actor_steps = 0
     for epoch in range(cfg.algorithm.max_epochs):
         learner.updateAcquisitionAgent(acquisition_agent)
+        
         # Get trajectories
         if epoch == 0:
             acquisition_agent(  acquisition_worspace,t=0,
-                                **cfg.algorithm, 
-                                n_steps=cfg.algorithm.n_timesteps)  
+                                n_steps=cfg.algorithm.n_timesteps,
+                                **acquisition_args)  
         else:
             acquisition_worspace.copy_n_last_steps(1)
             acquisition_agent(  acquisition_worspace,t=1,
-                                epsilon=cfg.algorithm.action_noise, # TODO: give  args in a more generic way. 
-                                n_steps=cfg.algorithm.n_timesteps-1) # Avoid explicit named-args if not assumption is made about the agent 
-        acquisition_worspace.zero_grad()
+                                n_steps=cfg.algorithm.n_timesteps-1,
+                                **acquisition_args)
+        # acquisition_worspace.zero_grad()
 
         ## Logging cumulated rewards: 
         n_actor_steps = (
@@ -64,7 +66,7 @@ def synchronized_train(cfg):
         
         learner.train(acquisition_worspace,n_actor_steps,n_total_actor_steps,logger)
 
-@hydra.main(config_path='configs/', config_name="td3.yaml")
+@hydra.main(config_path='configs/', config_name="a2c.yaml")
 def main(cfg : DictConfig):
     import torch.multiprocessing as mp
     mp.set_start_method("spawn")

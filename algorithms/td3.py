@@ -1,6 +1,6 @@
 
 
-from policies.ddpg import ddpg,get_env_dimensions,soft_param_update
+from algorithms.ddpg import ddpg,get_env_dimensions,soft_param_update
 from salina import Workspace,Agent,instantiate_class,get_class
 from salina.agents import Agents,TemporalAgent,NRemoteAgent
 from salina.agents.gyma import AutoResetGymAgent
@@ -8,7 +8,7 @@ from salina.logger import TFLogger
 from salina.rl.replay_buffer import ReplayBuffer
 import copy
 import torch
-from agents.utils import Salina_Actor_Decorator,Salina_Qcritic_Decorator
+from models.utils import Salina_Actor_Decorator,Salina_Qcritic_Decorator
 
 
 class td3(ddpg):

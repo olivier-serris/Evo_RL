@@ -10,9 +10,9 @@ from torch.nn.utils import parameters_to_vector,vector_to_parameters
 
 import torch
 
-from policies.learner import learner
+from algorithms.learner import learner
 from utils import get_env_dimensions,soft_param_update
-from agents.utils import Salina_Actor_Decorator,Salina_Qcritic_Decorator
+from models.utils import Salina_Actor_Decorator,Salina_Qcritic_Decorator
 
 class ddpg(learner):
 
@@ -69,6 +69,8 @@ class ddpg(learner):
         self.action_agent.set_name("action_agent")
         acquisition_action_actor = copy.deepcopy(self.action_agent)
         return acquisition_action_actor
+    def get_acquisition_args(self):
+        return {'epsilon':self.cfg.algorithm.action_noise}
 
     def updateAcquisitionAgent(self,acquisitionAgent):
         for a in acquisitionAgent.get_by_name("action_agent"):

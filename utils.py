@@ -2,12 +2,22 @@ from salina import instantiate_class
 from gym.wrappers import TimeLimit
 import gym
 import torch.nn as nn
-def get_env_dimensions(env):
+
+
+def get_env_dimensions(env,discrete_action = False):
     env = instantiate_class(env)
     obs_dim = env.observation_space.shape[0]
-    action_dim = env.action_space.shape[0]
-    max_action =env.action_space.high[0]
-    return obs_dim,action_dim,max_action
+    if discrete_action : 
+        action_dim = env.action_space.n
+        del env 
+        return obs_dim,action_dim
+
+    else:
+        action_dim = env.action_space.shape[0]
+        max_action =env.action_space.high[0]
+        del env 
+        return obs_dim,action_dim,max_action
+    
 
 def make_gym_env(max_episode_steps,env_name):
     return TimeLimit(gym.make(env_name),max_episode_steps=max_episode_steps)

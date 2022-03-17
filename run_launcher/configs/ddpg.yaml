@@ -17,18 +17,18 @@ algorithm:
   clip_grad: 2
 
   learner: 
-    classname: policies.ddpg.ddpg
+    classname: algorithms.ddpg.ddpg
 
   optimizer:
     classname: torch.optim.Adam
     lr: 0.001
   
   action_agent:
-    classname: agents.salina_agents.DeterministicAgent
+    classname: models.salina_models.DeterministicAgent
     hidden_layers: [256,256]
 
   q_agent:
-    classname: agents.salina_agents.Q_Agent
+    classname: models.salina_models.Q_Agent
     hidden_layers: [256,256]
 
 

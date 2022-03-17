@@ -16,32 +16,32 @@ algorithm:
   clip_grad: 2
   policy_delay : 2
 
-  action_agent:
-    classname: agents.salina_agents.DeterministicAgent
-    hidden_layers: [256,256]
-
   # action_agent:
-  #   classname: agents.cem_rl_article_agents.Actor
-  #   args:
-  #     layer_norm : True
-      
-  q_agent:
-    classname: agents.salina_agents.Q_Agent
-    hidden_layers: [256,256]
+  #   classname: models.salina_models.DeterministicAgent
+  #   hidden_layers: [256,256]
 
+  action_agent:
+    classname: models.cem_rl_article_models.Actor
+    args:
+      layer_norm : True
+      
   # q_agent:
-  #   classname: agents.cem_rl_article_agents.Critic
-  #   args:
-  #     layer_norm : True
-  #     policy_noise : 0.2
-  #     noise_clip : 0.5
+  #   classname: models.salina_models.Q_Agent
+  #   hidden_layers: [256,256]
+
+  q_agent:
+    classname: models.cem_rl_article_models.Critic
+    args:
+      layer_norm : True
+      policy_noise : 0.2
+      noise_clip : 0.5
       
   learner: 
-    classname: policies.cem_rl.cem_rl
+    classname: algorithms.cem_rl.cem_rl
 
   n_rl_agent : 5
   rl_algorithm:
-    classname: policies.td3.td3
+    classname: algorithms.td3.td3
     active : True
 
   es_algorithm:

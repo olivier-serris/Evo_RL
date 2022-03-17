@@ -40,3 +40,46 @@ class Q_Agent(Agent):
         input = torch.cat((obs,action),dim=1)
         q_value = self.model(input)
         self.set(('q_value',t),q_value)
+
+
+
+class ProbAgent(Agent):
+    def __init__(self,state_dim,n_action,hidden_layers,**kwargs):
+        super().__init__(name="prob_agent")
+        self.model = mlp([state_dim] + list(hidden_layers) + [n_action],
+                        activation=nn.ReLU)
+        
+
+    def forward(self, t, **kwargs):
+        observation = self.get(("env/env_obs", t))
+        scores = self.model(observation)
+        probs = torch.softmax(scores, dim=-1)
+        if torch.any(torch.isnan(probs)):
+            print('Here')
+        self.set(("action_probs", t), probs)
+
+
+class ActionAgent(Agent):
+    def __init__(self,**kwargs):
+        super().__init__()
+
+    def forward(self, t, stochastic, **kwargs):
+        probs = self.get(("action_probs", t))
+        if stochastic:
+            action = torch.distributions.Categorical(probs).sample()
+        else:
+            action = probs.argmax(1)
+
+        self.set(("action", t), action)
+
+
+class V_Agent(Agent):
+    def __init__(self,state_dim,hidden_layers,**kwargs):
+        super().__init__()
+        self.model = mlp([state_dim] + list(hidden_layers) + [1],
+                        activation=nn.ReLU)
+
+    def forward(self, t, **kwargs):
+        observation = self.get(("env/env_obs", t))
+        critic = self.model(observation).squeeze(-1)
+        self.set(("critic", t), critic)

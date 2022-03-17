@@ -17,7 +17,7 @@ import sys
 import torch 
 sys.path.append(os.getcwd())
 
-from policies.cem_rl import CemRl
+from algorithms.cem_rl import CemRl
 HYDRA_FULL_ERROR=1
 
 # TODO: clean remove this function with better env creation
@@ -140,7 +140,7 @@ def debug_train(cfg):
         cem_rl.train(acquisition_workspaces,n_interactions,logger)
 
 
-@hydra.main(config_path=os.path.join(os.getcwd(),'run_launcher/configs/'), config_name="cem_rl_only_cem_pandroid.yaml")
+@hydra.main(config_path=os.path.join(os.getcwd(),'run_launcher/configs/'), config_name="cem_rl_only_td3.yaml")
 def main(cfg : DictConfig):
     import torch.multiprocessing as mp
     mp.set_start_method("spawn")
@@ -148,5 +148,6 @@ def main(cfg : DictConfig):
     # debug_train(cfg)
 
 if __name__=='__main__':
-    sys.path.append(os.getcwd())
+    # print(os.getcwd())
+    # sys.path.append(os.getcwd())
     main()
