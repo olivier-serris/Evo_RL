@@ -71,13 +71,12 @@ class CemRl:
 
     def update_acquisition_actor(self,actor,i) -> None:
         weight = copy.deepcopy(self.pop_weights[i]) # TODO: check if necessary
-        weight = self.pop_weights[i] # TODO: check if necessary
         vector_to_parameters(weight,self.param_transfert_agent.parameters())        
         actor.load_state_dict(self.param_transfert_agent.state_dict())
 
     def train(self,acq_workspaces,n_total_actor_steps,logger) -> None:
 
-        # Ccompute fitness of population
+        # Compute fitness of population
         n_actor_all_steps = 0
         fitness = torch.zeros(len(acq_workspaces))
         for i,workspace in enumerate(acq_workspaces):
