@@ -1,7 +1,10 @@
-import sys,os
+import sys, os
+import torch
 
 import gym
 from gym.wrappers import TimeLimit
+
+import hydra
 from omegaconf import DictConfig
 
 from salina import instantiate_class,Workspace
@@ -10,11 +13,7 @@ from salina.agents.gyma import AutoResetGymAgent
 from salina.agents.gyma import NoAutoResetGymAgent, GymAgent
 from salina.logger import TFLogger
 from salina.agents.asynchronous import AsynchronousAgent
-import hydra
 
-import sys
-
-import torch 
 sys.path.append(os.getcwd())
 
 from algorithms.cem_rl import CemRl

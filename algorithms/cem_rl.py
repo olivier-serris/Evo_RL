@@ -1,7 +1,9 @@
-import torch
-from salina import instantiate_class,get_class
 import random 
+
+import torch
 from torch.nn.utils import parameters_to_vector
+
+from salina import instantiate_class,get_class
 from salina import Agent
 
 import copy
