@@ -46,7 +46,7 @@ class CemRl:
         self.n_rl_agent = cfg.algorithm.n_rl_agent
 
         # RL objects:
-        self.rl_learner =  get_class(cfg.algorithm.rl_algorithm)(cfg)
+        self.rl_learner = get_class(cfg.algorithm.rl_algorithm)(cfg)
 
         # CEM objects
         actor_weights = self.rl_learner.get_acquisition_actor().parameters()
@@ -58,23 +58,23 @@ class CemRl:
         self.pop_weights = self.es_learner.ask(self.pop_size)
 
         # vector_to_parameters does not seem to work when module are in different processes
-        # the transfert agent is used to transfert vector_to_parameters in main thread
-        # and then transfert the parameters to another agent in another process.
-        self.param_transfert_agent = copy.deepcopy(self.rl_learner.get_acquisition_actor())
+        # the transfer agent is used to transfer vector_to_parameters in main thread
+        # and then transfer the parameters to another agent in another process.
+        self.param_transfer_agent = copy.deepcopy(self.rl_learner.get_acquisition_actor())
 
     def get_acquisition_actor(self,i) -> Agent:
         actor = self.rl_learner.get_acquisition_actor()
         weight = copy.deepcopy(self.pop_weights[i]) # TODO: check if necessary
-        vector_to_parameters(weight,self.param_transfert_agent.parameters())
-        actor.load_state_dict(self.param_transfert_agent.state_dict())
+        vector_to_parameters(weight,self.param_transfer_agent.parameters())
+        actor.load_state_dict(self.param_transfer_agent.state_dict())
         return actor
 
     def update_acquisition_actor(self,actor,i) -> None:
         weight = copy.deepcopy(self.pop_weights[i]) # TODO: check if necessary
-        vector_to_parameters(weight,self.param_transfert_agent.parameters())        
-        actor.load_state_dict(self.param_transfert_agent.state_dict())
+        vector_to_parameters(weight, self.param_transfer_agent.parameters())        
+        actor.load_state_dict(self.param_transfer_agent.state_dict())
 
-    def train(self,acq_workspaces,n_total_actor_steps,logger) -> None:
+    def train(self, acq_workspaces,n_total_actor_steps,logger) -> None:
 
         # Compute fitness of population
         n_actor_all_steps = 0
