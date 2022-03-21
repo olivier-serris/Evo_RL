@@ -1,38 +1,12 @@
 import random 
 
 import torch
-from torch.nn.utils import parameters_to_vector
+from torch.nn.utils import parameters_to_vector,vector_to_parameters
 
 from salina import instantiate_class,get_class
 from salina import Agent
 
 import copy
-
-def vector_to_parameters(vec: torch.Tensor, parameters) -> None:
-    r"""Convert one vector to the parameters
-
-    Args:
-        vec (Tensor): a single vector represents the parameters of a model.
-        parameters (Iterable[Tensor]): an iterator of Tensors that are the
-            parameters of a model.
-    """
-    # Ensure vec of type Tensor
-    if not isinstance(vec, torch.Tensor):
-        raise TypeError('expected torch.Tensor, but got: {}'
-                        .format(torch.typename(vec)))
-    # Flag for the device where the parameter is located
-    param_device = None
-
-    # Pointer for slicing the vector for each parameter
-    pointer = 0
-    for param in parameters:
-        # The length of the parameter
-        num_param = param.numel()
-        # Slice the vector, reshape it, and replace the old data of the parameter
-        param.data.copy_(vec[pointer:pointer + num_param].view_as(param).data)
-
-        # Increment the pointer
-        pointer += num_param
 
 class CemRl:
 
@@ -66,13 +40,13 @@ class CemRl:
 
     def get_acquisition_actor(self,i) -> Agent:
         actor = self.rl_learner.get_acquisition_actor()
-        weight = copy.deepcopy(self.pop_weights[i]) # TODO: check if necessary
+        weight = self.pop_weights[i]
         vector_to_parameters(weight,self.param_transfer_agent.parameters())
         actor.load_state_dict(self.param_transfer_agent.state_dict())
         return actor
 
     def update_acquisition_actor(self,actor,i) -> None:
-        weight = copy.deepcopy(self.pop_weights[i]) # TODO: check if necessary
+        weight = self.pop_weights[i]
         vector_to_parameters(weight, self.param_transfer_agent.parameters())        
         actor.load_state_dict(self.param_transfer_agent.state_dict())
 
@@ -101,9 +75,8 @@ class CemRl:
             selected_actors = random.sample(range(0,self.pop_size),self.n_rl_agent) # take a half of the population at random
             # n_step_per_actor = n_actor_all_steps//len(selected_actors)
             for i in range(self.n_rl_agent):
-                logger.debug(f"agent {selected_actors[i]}")
                 agent_id = selected_actors[i]
-                weight = copy.deepcopy(self.pop_weights[agent_id]) # TODO: check if copy necessary
+                weight = self.pop_weights[agent_id]
                 self.rl_learner.set_actor_params(weight)
 
                 for _ in range(n_actor_all_steps // len(selected_actors)):
@@ -118,4 +91,4 @@ class CemRl:
 
                 # send back the updated weight into the population
                 vector_param = torch.nn.utils.parameters_to_vector(self.rl_learner.get_parameters())
-                self.pop_weights[agent_id] = vector_param.clone().detach() # TODO: check if copy necessary
+                self.pop_weights[agent_id] = vector_param.detach()
