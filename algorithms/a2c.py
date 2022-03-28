@@ -24,6 +24,9 @@ class A2C(learner):
     def __init__(self,**kwargs)-> None:
         
         self.h_params = DictConfig(kwargs)
+        self.device = self.h_params.device 
+        if self.device == 'cuda':
+            assert torch.cuda.is_available()
 
         obs_dim, n_action = get_env_dimensions(self.h_params.env)
         # create agents
@@ -38,9 +41,9 @@ class A2C(learner):
         self.v_agent = get_class(self.h_params.v_agent)(**nn_args)
 
         # create temporal agents
-        self.t_prob_agent = TemporalAgent(self.prob_agent)
+        self.t_prob_agent = TemporalAgent(self.prob_agent).to(self.device)
         self.t_action_agent = TemporalAgent(self.action_agent)
-        self.t_v_agent = TemporalAgent(self.v_agent)
+        self.t_v_agent = TemporalAgent(self.v_agent).to(self.device)
 
         # create optimizers
         optimizer_args = get_arguments(self.h_params.optimizer)
@@ -76,7 +79,7 @@ class A2C(learner):
         return {'stochastic':False}
         
     def train(self, acq_workspace, actor_steps, total_actor_steps, logger=None):
-        replay_workspace = Workspace(acq_workspace)
+        replay_workspace = Workspace(acq_workspace).to(self.device)
         n_timesteps = replay_workspace.time_size()
         self.t_prob_agent(replay_workspace, t=0, n_steps=n_timesteps)
         self.t_v_agent(replay_workspace, t=0, n_steps=n_timesteps)

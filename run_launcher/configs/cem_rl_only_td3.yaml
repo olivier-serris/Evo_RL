@@ -1,8 +1,9 @@
 algorithm:
   env_seed: 432
   n_envs: 1
-  num_processes : 2
+  num_processes : 1
   max_epochs: 10000
+  device : 'cuda'
 
   batch_size: 128
   discount_factor: 0.995
@@ -67,4 +68,4 @@ logger:
   log_dir: cem_rl_only_td3
   modulo: 10
   every_n_seconds: 10
-  verbose: True
+  verbose: False

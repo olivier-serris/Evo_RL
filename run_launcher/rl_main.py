@@ -4,8 +4,7 @@ import sys,os
 import gym
 from gym.wrappers import TimeLimit
 from omegaconf import DictConfig
-
-from salina import instantiate_class
+from salina import instantiate_class,Workspace
 from salina.agents import Agents,TemporalAgent,NRemoteAgent
 from salina.agents.gyma import AutoResetGymAgent
 from salina.logger import TFLogger
@@ -32,13 +31,13 @@ def synchronized_train(cfg):
     n_processes=cfg.algorithm.num_processes
     acquisition_args = learner.get_acquisition_args()
     acquisition_agent,acquisition_worspace = NRemoteAgent.create(acquisition_agent,
-                                            n_processes=n_processes,
+                                            num_processes=n_processes,
                                             t=0,n_steps=cfg.algorithm.n_timesteps,
                                             **acquisition_args)
     acquisition_agent.seed(cfg.algorithm.env_seed)
     n_total_actor_steps = 0
     for epoch in range(cfg.algorithm.max_epochs):
-        learner.updateAcquisitionAgent(acquisition_agent)
+        learner.update_acquisition_agent(acquisition_agent)
         
         # Get trajectories
         if epoch == 0:
@@ -50,7 +49,6 @@ def synchronized_train(cfg):
             acquisition_agent(  acquisition_worspace,t=1,
                                 n_steps=cfg.algorithm.n_timesteps-1,
                                 **acquisition_args)
-        # acquisition_worspace.zero_grad()
 
         ## Logging cumulated rewards: 
         n_actor_steps = (
@@ -66,7 +64,7 @@ def synchronized_train(cfg):
         
         learner.train(acquisition_worspace,n_actor_steps,n_total_actor_steps,logger)
 
-@hydra.main(config_path='configs/', config_name="a2c.yaml")
+@hydra.main(config_path='configs/', config_name="td3.yaml")
 def main(cfg : DictConfig):
     import torch.multiprocessing as mp
     mp.set_start_method("spawn")

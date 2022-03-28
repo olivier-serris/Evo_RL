@@ -25,9 +25,7 @@ def make_gym_env(max_episode_steps,env_name,verbose = False):
     if verbose:
         print(f'for {env_name}, the low action is {gym_env.action_space.low} and hight is {gym_env.action_space.high}')
     return gym_env
-
-
-
+    
 
 def synchronized_train_multi(cfg):
     # init 
@@ -40,7 +38,7 @@ def synchronized_train_multi(cfg):
     acquisition_agents = []
     acquisition_actors = []
     for i in range(n_processes): 
-        env_agent = env_agent = AutoResetGymAgent(make_gym_env,{'max_episode_steps':cfg.env.max_episode_steps,
+        env_agent  = AutoResetGymAgent(make_gym_env,{'max_episode_steps':cfg.env.max_episode_steps,
                                             'env_name':cfg.env.env_name},
                                             n_envs=cfg.algorithm.n_envs)
         action_agent = cem_rl.get_acquisition_actor(i)
@@ -70,7 +68,7 @@ def synchronized_train_multi(cfg):
                 running = any(are_running)
             nb_agent_finished += n_to_launch
             acquisition_workspaces += [a.get_workspace() for a in acquisition_agents[:n_to_launch]]
-    
+
         ## Logging rewards:
         for acquisition_worspace in acquisition_workspaces:
             n_interactions += (
@@ -87,7 +85,7 @@ def synchronized_train_multi(cfg):
         logger.add_scalar(f"monitor/n_interactions", n_interactions, n_interactions)
         logger.add_scalar(f"monitor/reward", agents_creward.mean().item(), n_interactions)
         logger.add_scalar(f"monitor/reward_best", agents_creward.max().item(), n_interactions)
-            
+
         cem_rl.train(acquisition_workspaces,n_interactions,logger)
 
     for a in acquisition_agents:
@@ -96,7 +94,7 @@ def synchronized_train_multi(cfg):
 
 
 def debug_train(cfg):
-    ''' Train function without multi processing '''
+    """Train function without multi processing."""
     # init 
     cem_rl = CemRl(cfg)
     logger = instantiate_class(cfg.logger)
@@ -110,7 +108,7 @@ def debug_train(cfg):
     acquisition_agent.seed(cfg.algorithm.env_seed)
 
     n_interactions = 0
-    for _ in range(cfg.algorithm.max_epochs):
+    for epoch in range(cfg.algorithm.max_epochs):
         acquisition_workspaces = []
         for i in range(pop_size):
             workspace = Workspace()

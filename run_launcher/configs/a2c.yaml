@@ -20,6 +20,7 @@ algorithm:
       classname: torch.optim.Adam
       lr: 0.01
     env : ${env}
+    device : 'cpu'
       
   env_seed: 432
   n_envs: 4
