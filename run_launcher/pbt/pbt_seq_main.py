@@ -64,7 +64,7 @@ def synchronous_pbt(cfg):
             while n_train_it_timesteps < cfg.algorithm.train_budget:
                 # Transitions acquisition (multiple processes)
                 pbt_a.update_acquisition_agent(remote_agent)
-                if epoch == 0:
+                if n_train_it_timesteps == 0:
                     remote_agent(workspace, t=0,
                                  n_steps=n_acq_steps, **kwargs)
                 else:

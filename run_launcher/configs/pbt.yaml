@@ -15,6 +15,7 @@ algorithm:
     ]
 
   rl_agent:
+    device : 'cpu' 
     classname: algorithms.a2c.A2C
     discount_factor: 0.95
     entropy_coef: 0.001

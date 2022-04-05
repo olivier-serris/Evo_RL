@@ -55,7 +55,7 @@ class A2C(learner):
         return self.h_params 
 
     def apply_hyper_params(self, params: DictConfig):
-        self.h_params = OmegaConf.merge(self.h_params,params,str)
+        self.h_params = OmegaConf.merge(self.h_params,params)
         # Caution with hyper-parameters contained in sub-classes: 
         # ex : self.optimizer.lr = self.h_params.lr
         
