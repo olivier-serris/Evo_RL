@@ -232,7 +232,7 @@ def run_a2c(cfg):
         # )
         # td = target - critic[:-1]
         target = reward[1] + cfg.algorithm.discount_factor * critic[1].detach() * (
-            1 - torch.logical_and(done[1], ~truncated[1]).float()
+            torch.logical_or(~done[1], truncated).float()
         )
         td = target - critic[0]
 
