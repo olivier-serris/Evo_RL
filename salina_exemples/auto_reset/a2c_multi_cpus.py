@@ -70,13 +70,30 @@ def get_transitions(workspace):
 
 
 def debug_checks(transition_w, truncated):
+    """ """
     critic, done, action_probs, reward, action = transition_w[
         "critic", "env/done", "action_probs", "env/reward", "action"
     ]
-    assert done[0].max() == False
-    assert truncated[done == False].sum().item() == 0
+    timestep = transition_w["env/timestep"]
+    assert (
+        done[0].max() == False
+    )  # dones is must be always false in the first timestep of the transition.
+    # if not it means we have a transition (step final) => (step initial)
+
+    # timesteps must always follow each other.
+    assert (timestep[0] == timestep[1] - 1).all()
+
+    assert (
+        truncated[done == False].sum().item() == 0
+    )  # when done is false, truncated is always false
+
     if done[truncated].numel() > 0:
-        assert torch.amin(done[truncated]) == True
+        assert (
+            torch.amin(done[truncated]) == True
+        )  # when truncated is true, done is always true
+    assert reward[1].sum() == len(
+        reward[1]
+    ), "in cartpole, rewards are always 1"  # only 1 rewards
 
 
 class ProbAgent(TAgent):
@@ -125,7 +142,7 @@ class CriticAgent(TAgent):
 
 
 def make_cartpole(max_episode_steps):
-    return TimeLimit(gym.make("CartPole-v0"), max_episode_steps=max_episode_steps)
+    return TimeLimit(gym.make("CartPole-v1"), max_episode_steps=max_episode_steps)
 
 
 def run_a2c(cfg):

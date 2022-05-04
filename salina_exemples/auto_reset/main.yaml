@@ -20,8 +20,10 @@ algorithm:
     hidden_size: 32
 
   env:
-    classname: salina_examples.rl.a2c.multi_cpus.main.make_cartpole
-    max_episode_steps: 200
+    # classname: salina_examples.rl.a2c.multi_cpus.main.make_cartpole
+    classname: tools.make_env
+    env_name: CartPole-v1
+    max_episode_steps: 500
 
   optimizer:
     classname: torch.optim.Adam
